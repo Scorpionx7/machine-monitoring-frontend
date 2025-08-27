@@ -7,6 +7,9 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
+import { Machine, MachineStatus } from '../../models/machine';
+import { MachineService } from '../../services/machine.service';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -19,99 +22,88 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
     MatIconModule,
     MatProgressSpinnerModule
   ],
-  template: `
-    <div class="dashboard-container">
-      <div class="dashboard-header">
-        <h1 class="dashboard-title">
-          <mat-icon>dashboard</mat-icon>
-          Dashboard de Máquinas
-        </h1>
-      </div>
-      
-      <div class="filters-section">
-        <h3>Filtrar por Status:</h3>
-        <div class="filter-buttons">
-          <button mat-raised-button color="primary">Todas</button>
-          <button mat-stroked-button>Operando</button>
-          <button mat-stroked-button>Manutenção</button>
-          <button mat-stroked-button>Desligadas</button>
-        </div>
-      </div>
-
-      <div class="machines-grid">
-        <!-- Card de exemplo - depois substitua com dados reais -->
-        <mat-card class="machine-card">
-          <mat-card-header>
-            <mat-card-title>Escavadeira Hidráulica</mat-card-title>
-            <mat-card-subtitle>ID: EXC-001</mat-card-subtitle>
-          </mat-card-header>
-          
-          <mat-card-content>
-            <div class="machine-info">
-              <div class="info-item">
-                <mat-icon>location_on</mat-icon>
-                <span>Área de Mineração - Setor B</span>
-              </div>
-              <div class="info-item">
-                <mat-icon>speed</mat-icon>
-                <span>Status: </span>
-                <mat-chip color="primary" selected>Operando</mat-chip>
-              </div>
-            </div>
-          </mat-card-content>
-          
-          <mat-card-actions>
-            <button mat-button color="primary" routerLink="/machine-details/1">
-              <mat-icon>visibility</mat-icon>
-              Ver Detalhes
-            </button>
-          </mat-card-actions>
-        </mat-card>
-
-        <mat-card class="machine-card">
-          <mat-card-header>
-            <mat-card-title>Betoneira</mat-card-title>
-            <mat-card-subtitle>ID: BET-002</mat-card-subtitle>
-          </mat-card-header>
-          
-          <mat-card-content>
-            <div class="machine-info">
-              <div class="info-item">
-                <mat-icon>location_on</mat-icon>
-                <span>Obra Central - Andar 3</span>
-              </div>
-              <div class="info-item">
-                <mat-icon>build</mat-icon>
-                <span>Status: </span>
-                <mat-chip color="accent" selected>Manutenção</mat-chip>
-              </div>
-            </div>
-          </mat-card-content>
-          
-          <mat-card-actions>
-            <button mat-button color="primary" routerLink="/machine-details/2">
-              <mat-icon>visibility</mat-icon>
-              Ver Detalhes
-            </button>
-          </mat-card-actions>
-        </mat-card>
-      </div>
-
-      <div class="empty-state" *ngIf="false"> <!-- Alterar para *ngIf="machines.length === 0" -->
-        <mat-icon class="empty-icon">construction</mat-icon>
-        <h3>Nenhuma máquina encontrada</h3>
-        <p>Cadastre a primeira máquina para começar o monitoramento</p>
-        <button mat-raised-button color="primary" routerLink="/create-machine">
-          <mat-icon>add</mat-icon>
-          Cadastrar Máquina
-        </button>
-      </div>
-    </div>
-  `,
+  templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
 export class DashboardComponent implements OnInit {
+  machines: Machine[] = [];
+  filteredMachines: Machine[] = [];
+  selectedStatus: MachineStatus | 'all' = 'all';
+  isLoading = true;
+  statusEnum = MachineStatus;
+
+  constructor(private machineService: MachineService) {}
+
   ngOnInit() {
-    // Aqui você vai carregar as máquinas do serviço
+    this.loadMachines();
+  }
+
+  loadMachines(): void {
+    this.isLoading = true;
+    this.machineService.getMachines().subscribe({
+      next: (machines) => {
+        this.machines = machines;
+        this.filteredMachines = machines;
+        this.isLoading = false;
+
+      
+      console.log('=== STATUS DAS MÁQUINAS ===');
+      machines.forEach((machine, index) => {
+        console.log(`Máquina ${index + 1}: ${machine.name} - Status: "${machine.status}"`);
+      });
+    },
+    error: (error) => {
+      console.error('Error loading machines:', error);
+      this.isLoading = false;
+    }
+  });
+}
+
+  filterByStatus(status: MachineStatus | 'all'): void {
+  console.log('Filtrando por status:', status);
+  this.selectedStatus = status;
+  
+  if (status === 'all') {
+    this.filteredMachines = this.machines;
+  } else {
+    this.filteredMachines = this.machines.filter(machine => {
+     
+      const machineStatusNormalized = machine.status.trim().toLowerCase();
+      const filterStatusNormalized = status.trim().toLowerCase();
+      
+      console.log('Comparando:', `"${machineStatusNormalized}"`, 'com', `"${filterStatusNormalized}"`);
+      
+      return machineStatusNormalized === filterStatusNormalized;
+    });
+  }
+  
+  console.log('Máquinas filtradas:', this.filteredMachines.length);
+  console.log('Máquinas:', this.filteredMachines);
+}
+
+  getStatusColor(status: MachineStatus): string {
+    switch (status) {
+      case MachineStatus.Operating:
+        return 'primary';
+      case MachineStatus.Maintenance:
+        return 'accent';
+      case MachineStatus.Shutdown:
+        return 'warn';
+      default:
+        return '';
+    }
+  }
+
+  getStatusText(status: MachineStatus): string {
+    switch (status) {
+      case MachineStatus.Operating:
+        return 'Operando';
+      case MachineStatus.Maintenance:
+        return 'Manutenção';
+      case MachineStatus.Shutdown:
+        return 'Desligada';
+      default:
+        return status;
+    }
   }
 }

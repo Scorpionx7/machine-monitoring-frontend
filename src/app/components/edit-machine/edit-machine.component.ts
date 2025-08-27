@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,10 +11,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { MachineService } from '../../services/machine.service';
-import { MachineStatus } from '../../models/machine';
+import { Machine, MachineStatus } from '../../models/machine';
 
 @Component({
-  selector: 'app-create-machine',
+  selector: 'app-edit-machine',
   standalone: true,
   imports: [
     CommonModule,
@@ -28,13 +28,13 @@ import { MachineStatus } from '../../models/machine';
     MatIconModule,
     MatSnackBarModule
   ],
-  templateUrl: './create-machine.component.html',
-  styleUrls: ['./create-machine.component.scss']
+  templateUrl: './edit-machine.component.html',
+  styleUrls: ['./edit-machine.component.scss']
 })
-export class CreateMachineComponent {
+export class EditMachineComponent implements OnInit {
   machineForm: FormGroup;
   isLoading = false;
-  
+  machineId: string = '';
   
   statusOptions = [
     { value: 'operando', label: 'Operando' },
@@ -45,42 +45,65 @@ export class CreateMachineComponent {
   constructor(
     private fb: FormBuilder,
     private machineService: MachineService,
+    private route: ActivatedRoute,
     private router: Router,
     private snackBar: MatSnackBar
   ) {
     this.machineForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       location: ['', [Validators.required, Validators.minLength(5)]],
-      status: ['desligada', Validators.required] 
+      status: ['', Validators.required]
+    });
+  }
+
+  ngOnInit() {
+    this.machineId = this.route.snapshot.paramMap.get('id') || '';
+    
+    if (this.machineId) {
+      this.loadMachineData();
+    }
+  }
+
+  loadMachineData(): void {
+    this.isLoading = true;
+    this.machineService.getMachineById(this.machineId).subscribe({
+      next: (machine) => {
+        this.machineForm.patchValue({
+          name: machine.name,
+          location: machine.location,
+          status: machine.status
+        });
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading machine:', error);
+        this.snackBar.open('Erro ao carregar máquina.', 'Fechar', { duration: 5000 });
+        this.isLoading = false;
+      }
     });
   }
 
   onSubmit(): void {
-    if (this.machineForm.valid) {
+    if (this.machineForm.valid && this.machineId) {
       this.isLoading = true;
-      console.log('Dados do formulário:', this.machineForm.value);
       
-      this.machineService.createMachine(this.machineForm.value).subscribe({
+      this.machineService.updateMachine(this.machineId, this.machineForm.value).subscribe({
         next: (response) => {
           this.isLoading = false;
-          this.snackBar.open('Máquina cadastrada com sucesso!', 'Fechar', {
+          this.snackBar.open('Máquina atualizada com sucesso!', 'Fechar', {
             duration: 3000,
             panelClass: ['success-snackbar']
           });
-          this.router.navigate(['/dashboard']);
+          this.router.navigate(['/machine-details', this.machineId]);
         },
         error: (error) => {
           this.isLoading = false;
-          console.error('Error creating machine:', error);
-          this.snackBar.open('Erro ao cadastrar máquina. Tente novamente.', 'Fechar', {
+          console.error('Error updating machine:', error);
+          this.snackBar.open('Erro ao atualizar máquina. Tente novamente.', 'Fechar', {
             duration: 5000,
             panelClass: ['error-snackbar']
           });
         }
-      });
-    } else {
-      Object.keys(this.machineForm.controls).forEach(key => {
-        this.machineForm.get(key)?.markAsTouched();
       });
     }
   }

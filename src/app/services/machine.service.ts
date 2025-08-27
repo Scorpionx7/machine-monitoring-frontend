@@ -7,7 +7,7 @@ import { Machine, CreateMachineDto, MachineStatus } from '../models/machine';
   providedIn: 'root'
 })
 export class MachineService {
-  private apiUrl = 'https://localhost:7256/api'; // Sua URL da API
+  private apiUrl = 'https://localhost:7256/api'; 
 
   constructor(private http: HttpClient) { }
 
@@ -21,6 +21,10 @@ export class MachineService {
 
   createMachine(machine: CreateMachineDto): Observable<Machine> {
     return this.http.post<Machine>(`${this.apiUrl}/Machines`, machine);
+  }
+  
+  updateMachine(id: string, machine: Partial<Machine>): Observable<Machine> {
+    return this.http.put<Machine>(`${this.apiUrl}/Machines/${id}`, machine);
   }
 
   updateMachineTelemetry(id: string, telemetry: Partial<Machine>): Observable<any> {

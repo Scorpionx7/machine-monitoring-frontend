@@ -1,8 +1,8 @@
-<div class="create-machine-container">
+<div class="edit-machine-container">
   <div class="header">
     <h1>
-      <mat-icon>add_circle</mat-icon>
-      Cadastrar Nova Máquina
+      <mat-icon>edit</mat-icon>
+      Editar Máquina
     </h1>
     <button mat-stroked-button routerLink="/dashboard">
       <mat-icon>arrow_back</mat-icon>
@@ -66,7 +66,7 @@
           color="primary"
           [disabled]="isLoading || machineForm.invalid">
           <mat-icon>save</mat-icon>
-          {{ isLoading ? 'Cadastrando...' : 'Cadastrar Máquina' }}
+          {{ isLoading ? 'Atualizando...' : 'Atualizar Máquina' }}
         </button>
       </mat-card-actions>
     </form>

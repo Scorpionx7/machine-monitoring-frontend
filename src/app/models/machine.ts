@@ -16,3 +16,9 @@ export interface CreateMachineDto {
   location: string;
   status: MachineStatus;
 }
+
+console.log('Valores do Enum MachineStatus:', {
+  Operating: MachineStatus.Operating,
+  Maintenance: MachineStatus.Maintenance,
+  Shutdown: MachineStatus.Shutdown
+});

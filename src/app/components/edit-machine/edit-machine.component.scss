@@ -1,4 +1,4 @@
-.create-machine-container {
+.edit-machine-container {
   max-width: 800px;
   margin: 0 auto;
 }
@@ -48,7 +48,6 @@ mat-card-actions {
   padding: 16px 0 0 0;
 }
 
-// Responsividade
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
