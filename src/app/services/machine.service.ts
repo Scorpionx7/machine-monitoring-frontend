@@ -23,12 +23,9 @@ export class MachineService {
     return this.http.post<Machine>(`${this.apiUrl}/Machines`, machine);
   }
   
-  updateMachine(id: string, machine: Partial<Machine>): Observable<Machine> {
-    return this.http.put<Machine>(`${this.apiUrl}/Machines/${id}`, machine);
-  }
-
-  updateMachineTelemetry(id: string, telemetry: Partial<Machine>): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/Machines/${id}/telemetry`, telemetry);
+  updateMachineTelemetry(id: string, telemetryData: { location: string; status: string }): Observable<Machine> {
+    const url = `${this.apiUrl}/Machines/${id}/telemetry`;
+    return this.http.patch<Machine>(url, telemetryData);
   }
 
   getMachinesByStatus(status: MachineStatus): Observable<Machine[]> {

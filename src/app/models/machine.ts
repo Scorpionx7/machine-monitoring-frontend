@@ -7,7 +7,7 @@ export interface Machine {
 
 export enum MachineStatus {
   Operating = 'operando',
-  Maintenance = 'parada para manutenção',
+  Maintenance = 'ParadaManutencao',
   Shutdown = 'desligada'
 }
 

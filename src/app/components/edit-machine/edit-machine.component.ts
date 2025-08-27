@@ -38,7 +38,7 @@ export class EditMachineComponent implements OnInit {
   
   statusOptions = [
     { value: 'operando', label: 'Operando' },
-    { value: 'parada para manutenção', label: 'Parada para Manutenção' },
+    { value: 'ParadaManutencao', label: 'Parada para Manutenção' },
     { value: 'desligada', label: 'Desligada' }
   ];
 
@@ -61,6 +61,8 @@ export class EditMachineComponent implements OnInit {
     
     if (this.machineId) {
       this.loadMachineData();
+
+      this.machineForm.get('name')?.disable();
     }
   }
 
@@ -84,29 +86,32 @@ export class EditMachineComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.machineForm.valid && this.machineId) {
-      this.isLoading = true;
-      
-      this.machineService.updateMachine(this.machineId, this.machineForm.value).subscribe({
-        next: (response) => {
-          this.isLoading = false;
-          this.snackBar.open('Máquina atualizada com sucesso!', 'Fechar', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
-          this.router.navigate(['/machine-details', this.machineId]);
-        },
-        error: (error) => {
-          this.isLoading = false;
-          console.error('Error updating machine:', error);
-          this.snackBar.open('Erro ao atualizar máquina. Tente novamente.', 'Fechar', {
-            duration: 5000,
-            panelClass: ['error-snackbar']
-          });
-        }
-      });
-    }
+  if (this.machineForm.valid && this.machineId) {
+    this.isLoading = true;
+
+    const telemetryData = {
+      location: this.machineForm.value.location,
+      status: this.machineForm.value.status
+    };
+    
+    this.machineService.updateMachineTelemetry(this.machineId, telemetryData).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        this.snackBar.open('Telemetria da máquina atualizada com sucesso!', 'Fechar', {
+          duration: 3000,
+        });
+        this.router.navigate(['/machine-details', this.machineId]);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Error updating machine telemetry:', error);
+        this.snackBar.open('Erro ao atualizar telemetria. Tente novamente.', 'Fechar', {
+          duration: 5000,
+        });
+      }
+    });
   }
+}
 
   get name() { return this.machineForm.get('name'); }
   get location() { return this.machineForm.get('location'); }
