@@ -38,7 +38,7 @@ export class CreateMachineComponent {
   
   statusOptions = [
     { value: 'operando', label: 'Operando' },
-    { value: 'parada para manutenção', label: 'Parada para Manutenção' },
+    { value: 'ParadaManutencao', label: 'Parada para Manutenção' },
     { value: 'desligada', label: 'Desligada' }
   ];
 
